@@ -8,10 +8,11 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
-
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-
+    mapping (address => bool) private airlines;
+    address[] private registredAirlines;
+    mapping (address => bool) private authorizedAppContract;
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
@@ -56,6 +57,15 @@ contract FlightSuretyData {
         _;
     }
 
+    /**
+    * @dev Modifier that requires the Contract to be authorized 
+    */
+    modifier requireAuthorizedContract(address contract_)
+    {
+        require(authorizedAppContract[contract_], "Application Contract is not authorized");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -84,11 +94,40 @@ contract FlightSuretyData {
                                 bool mode
                             ) 
                             external
-                            requireContractOwner 
+                            requireContractOwner()
     {
         operational = mode;
     }
 
+    /**
+    * @dev Authorized a contract
+    * Authorize a contract so that it can call the function of this contract
+    */
+
+    function authorizeAppContract
+                                (
+                                    address contract_
+                                ) 
+                                external
+                                requireContractOwner()
+    {
+            authorizedAppContract[contract_] = true;
+    }
+
+    /**
+    * @dev Deauthorized a contract
+    * Deauthorize a contract so that it cannot call the function of this contract
+    */
+
+    function deauthorizeAppContract
+                                (
+                                    address contract_
+                                ) 
+                                external
+                                requireContractOwner()
+    {
+            authorizedAppContract[contract_] = false;
+    }    
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -99,11 +138,15 @@ contract FlightSuretyData {
     *
     */   
     function registerAirline
-                            (   
+                            (  
+                                address airline 
                             )
                             external
-                            pure
+                            requireIsOperational()
+                            requireAuthorizedContract(tx.origin)
     {
+            airlines[airline] = true;
+            registredAirlines.push(airline);
     }
 
 
