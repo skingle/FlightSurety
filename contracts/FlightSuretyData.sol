@@ -8,9 +8,15 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
+    struct Airline{
+        bool isRegistred;
+        uint256 votes;
+        mapping(address => bool) registredVotes;
+    }
+
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-    mapping (address => bool) private airlines;
+    mapping (address => Airline) private airlines;
     address[] private registredAirlines;
     mapping (address => bool) private authorizedAppContract;
     /********************************************************************************************/
@@ -22,12 +28,13 @@ contract FlightSuretyData {
     * @dev Constructor
     *      The deploying account becomes contractOwner
     */
-    constructor
-                                (
-                                ) 
-                                public 
+    constructor(address firstAirline) 
+        public 
     {
         contractOwner = msg.sender;
+        //adding first airline
+        airlines[firstAirline].isRegistred = true;
+        registredAirlines.push(firstAirline);
     }
 
     /********************************************************************************************/
@@ -145,7 +152,7 @@ contract FlightSuretyData {
                             requireIsOperational()
                             requireAuthorizedContract(tx.origin)
     {
-            airlines[airline] = true;
+            airlines[airline].isRegistred = true;
             registredAirlines.push(airline);
     }
 
@@ -192,25 +199,75 @@ contract FlightSuretyData {
     *      resulting in insurance payouts, the contract should be self-sustaining
     *
     */   
-    function fund
-                            (   
-                            )
-                            public
-                            payable
+    function fund()
+        public
+        payable
     {
     }
 
-    function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32) 
+    function getFlightKey(address airline, string memory flight, uint256 timestamp)
+        pure
+        internal
+        returns(bytes32) 
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+
+    /**
+    *   @dev gets the Airline registration status
+    */
+    function isAirlineRegistred(address airline)
+        pure
+        external
+        return(bool)
+    {
+        return airlines[airline].isRegistred;
+    }
+
+    /**
+    *   @dev gets vote count
+    */
+    function getAirlineVoteCount(address airline)
+        pure
+        external
+        return(uint256)
+    {
+        return airlines[airline].votes;
+    }
+
+    /**
+    *   @dev register the vote for given airline
+    */
+    function incrementAirlineVote(address airline)
+        external
+        requireAuthorizedContract()
+        return(uint256)
+    {   
+        airlines[airline].votes = airlines[airline].votes + 1;
+        airlines[airline].registredVotes[msg.sender] = true;
+        return airlines[airline].votes;
+    }
+
+    /**
+    *   @dev get the vote of the participent
+    */
+    function hasVoted(address airline)
+        external
+        requireAuthorizedContract()
+        return(bool)
+    {   
+        return airlines[airline].registredVotes[msg.sender];
+    }
+
+    /**
+    *   @dev gets total registred airlines
+    */
+    function getNumberOfRegistredAirlines()
+        pure
+        external
+        return(uint256)
+    {
+        return registredAirlines.length;
     }
 
     /**

@@ -24,7 +24,11 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
+    //Constant
+    uint8 private constant REGISTRATION_WITHOUT_VOTE = 5;
+
     address private contractOwner;          // Account used to deploy contract
+    bool private operational;               // Operational status of the contract
 
     struct Flight {
         bool isRegistered;
@@ -32,9 +36,17 @@ contract FlightSuretyApp {
         uint256 updatedTimestamp;        
         address airline;
     }
+
     mapping(bytes32 => Flight) private flights;
 
- 
+    FlightSuretyData flightSuretyDataContract;
+
+
+    /********************************************************************************************/
+    /*                                              EVENTS                                      */
+    /********************************************************************************************/
+    event voteAlreadyRecorded(string name,uint age);
+
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -50,7 +62,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(operational, "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -60,6 +72,15 @@ contract FlightSuretyApp {
     modifier requireContractOwner()
     {
         require(msg.sender == contractOwner, "Caller is not contract owner");
+        _;
+    }
+
+    /**
+    * @dev Modifier that requires the airline to be registered
+    */
+    modifier requireAirlineRegistred()
+    {
+        require(flightSuretyDataContract.isAirlineRegistred(msg.sender), "Airline should be registred");
         _;
     }
 
@@ -73,10 +94,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContract
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyDataContract = new FlightSuretyData(dataContract);
     }
 
     /********************************************************************************************/
@@ -91,6 +114,21 @@ contract FlightSuretyApp {
         return true;  // Modify to call data contract's status
     }
 
+    /**
+    * @dev Sets contract operations on/off
+    *
+    * When operational mode is disabled, all write transactions except for this one will fail
+    */    
+    function setOperatingStatus
+                            (
+                                bool mode
+                            ) 
+                            external
+                            requireContractOwner()
+    {
+        operational = mode;
+    }
+
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
@@ -100,13 +138,19 @@ contract FlightSuretyApp {
     * @dev Add an airline to the registration queue
     *
     */   
-    function registerAirline
-                            (   
-                            )
-                            external
-                            pure
-                            returns(bool success, uint256 votes)
+    function registerAirline( address airline )
+        external
+        requireIsOperational()
+        requireAirlineRegistred()
+        returns(bool success, uint256 votes)
     {
+        if(flightSuretyData.getNumberOfRegistredAirlines() < REGISTRATION_WITHOUT_VOTE) {
+            flightSuretyData.registerAirline(airline);
+        }else{
+            if(flightSuretyData.hasVoted(airline)){
+                
+            }
+        }
         return (success, 0);
     }
 
