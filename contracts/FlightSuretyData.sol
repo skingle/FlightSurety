@@ -11,6 +11,7 @@ contract FlightSuretyData {
     struct Airline{
         bool isRegistred;
         uint256 votes;
+        uint256 investedFund;
         mapping(address => bool) registredVotes;
     }
 
@@ -83,9 +84,9 @@ contract FlightSuretyData {
     * @return A bool that is the current operating status
     */      
     function isOperational() 
-                            public 
-                            view 
-                            returns(bool) 
+        public 
+        view 
+        returns(bool) 
     {
         return operational;
     }
@@ -96,12 +97,9 @@ contract FlightSuretyData {
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */    
-    function setOperatingStatus
-                            (
-                                bool mode
-                            ) 
-                            external
-                            requireContractOwner()
+    function setOperatingStatus(bool mode) 
+        external
+        requireContractOwner()
     {
         operational = mode;
     }
@@ -111,12 +109,9 @@ contract FlightSuretyData {
     * Authorize a contract so that it can call the function of this contract
     */
 
-    function authorizeAppContract
-                                (
-                                    address contract_
-                                ) 
-                                external
-                                requireContractOwner()
+    function authorizeAppContract(address contract_) 
+        external
+        requireContractOwner()
     {
             authorizedAppContract[contract_] = true;
     }
@@ -126,12 +121,9 @@ contract FlightSuretyData {
     * Deauthorize a contract so that it cannot call the function of this contract
     */
 
-    function deauthorizeAppContract
-                                (
-                                    address contract_
-                                ) 
-                                external
-                                requireContractOwner()
+    function deauthorizeAppContract(address contract_) 
+        external
+        requireContractOwner()
     {
             authorizedAppContract[contract_] = false;
     }    
@@ -144,13 +136,10 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */   
-    function registerAirline
-                            (  
-                                address airline 
-                            )
-                            external
-                            requireIsOperational()
-                            requireAuthorizedContract(tx.origin)
+    function registerAirline(address airline)
+        external
+        requireIsOperational()
+        requireAuthorizedContract(msg.sender)
     {
             airlines[airline].isRegistred = true;
             registredAirlines.push(airline);
@@ -161,11 +150,9 @@ contract FlightSuretyData {
     * @dev Buy insurance for a flight
     *
     */   
-    function buy
-                            (                             
-                            )
-                            external
-                            payable
+    function buy()
+        external
+        payable
     {
 
     }
@@ -173,11 +160,9 @@ contract FlightSuretyData {
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees
-                                (
-                                )
-                                external
-                                pure
+    function creditInsurees()
+        external
+        pure
     {
     }
     
@@ -186,11 +171,9 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay
-                            (
-                            )
-                            external
-                            pure
+    function pay()
+        external
+        pure
     {
     }
 
@@ -217,7 +200,7 @@ contract FlightSuretyData {
     *   @dev gets the Airline registration status
     */
     function isAirlineRegistred(address airline)
-        pure
+        view
         external
         return(bool)
     {
@@ -228,13 +211,13 @@ contract FlightSuretyData {
     *   @dev gets vote count
     */
     function getAirlineVoteCount(address airline)
-        pure
+        view
         external
         return(uint256)
     {
         return airlines[airline].votes;
     }
-
+    
     /**
     *   @dev register the vote for given airline
     */
@@ -252,6 +235,7 @@ contract FlightSuretyData {
     *   @dev get the vote of the participent
     */
     function hasVoted(address airline)
+        view
         external
         requireAuthorizedContract()
         return(bool)
@@ -263,11 +247,25 @@ contract FlightSuretyData {
     *   @dev gets total registred airlines
     */
     function getNumberOfRegistredAirlines()
-        pure
+        view
         external
         return(uint256)
     {
         return registredAirlines.length;
+    }
+
+    /**
+    *   @dev receive fund and add entry to airline.investedAmount
+    */
+    
+
+    function receiveFundFromAirline(address airline)
+        external
+        payable
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+        airlines[airline].investedFund.add(msg.value);
     }
 
     /**

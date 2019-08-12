@@ -28,7 +28,11 @@ contract FlightSuretyApp {
     uint8 private constant REGISTRATION_WITHOUT_VOTE = 5;
 
     address private contractOwner;          // Account used to deploy contract
+    address private dataContractAddress;    // Data Contract Address
     bool private operational;               // Operational status of the contract
+    uint256 private seedAmount;             // seed amount in wei
+    uint256 private insuranceCapPrice;      // max insurance can be purchased in wei
+    
 
     struct Flight {
         bool isRegistered;
@@ -45,7 +49,7 @@ contract FlightSuretyApp {
     /********************************************************************************************/
     /*                                              EVENTS                                      */
     /********************************************************************************************/
-    event voteAlreadyRecorded(string name,uint age);
+    //event voteAlreadyRecorded(string name,uint age);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -84,6 +88,15 @@ contract FlightSuretyApp {
         _;
     }
 
+    // /**
+    // * @dev Modifier that caps the price of insurance
+    // */
+    // modifier requireInsurancePurchaseAmountLessThanCap()
+    // {
+    //     require(msg.value <= insuranceCapPrice , "Airline should be registred");
+    //     _;
+    // }
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
@@ -92,14 +105,14 @@ contract FlightSuretyApp {
     * @dev Contract constructor
     *
     */
-    constructor
-                                (
-                                    address dataContract
-                                ) 
-                                public 
+    constructor(address dataContract, uint256 _seedAmount, uint256 _insuranceCapPrice) 
+        public 
     {
         contractOwner = msg.sender;
+        dataContractAddress = dataContract;
         flightSuretyDataContract = new FlightSuretyData(dataContract);
+        seedAmount = _seedAmount;
+        insuranceCapPrice=_insuranceCapPrice;
     }
 
     /********************************************************************************************/
@@ -107,11 +120,11 @@ contract FlightSuretyApp {
     /********************************************************************************************/
 
     function isOperational() 
-                            public 
-                            pure 
-                            returns(bool) 
+        public 
+        pure 
+        returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return operational;  // Modify to call data contract's status
     }
 
     /**
@@ -119,12 +132,9 @@ contract FlightSuretyApp {
     *
     * When operational mode is disabled, all write transactions except for this one will fail
     */    
-    function setOperatingStatus
-                            (
-                                bool mode
-                            ) 
-                            external
-                            requireContractOwner()
+    function setOperatingStatus(bool mode) 
+        external
+        requireContractOwner()
     {
         operational = mode;
     }
@@ -134,9 +144,12 @@ contract FlightSuretyApp {
     /********************************************************************************************/
 
   
-   /**
+    /**
     * @dev Add an airline to the registration queue
-    *
+    * First 4  airlines  will  be  registred  without  any  votes  but  need  to be registred by pre registred airline.
+    * As airline registration count increases above or equle to 5, the new airline which is to be registred should get 
+    * 50% consensus of registred airlines 
+    * Every registred airline should submit 10 ether
     */   
     function registerAirline( address airline )
         external
@@ -146,12 +159,30 @@ contract FlightSuretyApp {
     {
         if(flightSuretyData.getNumberOfRegistredAirlines() < REGISTRATION_WITHOUT_VOTE) {
             flightSuretyData.registerAirline(airline);
+            success = true;
         }else{
-            if(flightSuretyData.hasVoted(airline)){
-                
+            success = false;
+            require(!flightSuretyData.hasVoted(airline), "Already voted for the airline");
+            if(flightSuretyData.incrementAirlineVote(airline)>=flightSuretyData.getNumberOfRegistredAirlines().div(2)){
+                flightSuretyData.registerAirline(airline);
             }
+            success = true;
+
         }
-        return (success, 0);
+        return (success, flightSuretyData.getAirlineVoteCount(airline));
+    }
+
+    /**
+    * @dev seed funding by registred airlines
+    * checks if the fund amount is equal to seedAmount
+    */
+    function fund()
+        public
+        payable
+        isOperational()
+        requireAirlineRegistred()
+    {   
+        flightSuretyDataContract.receiveFundFromAirline.value(msg.value)(msg.sender);
     }
 
 
@@ -159,11 +190,11 @@ contract FlightSuretyApp {
     * @dev Register a future flight for insuring.
     *
     */  
-    function registerFlight
-                                (
-                                )
-                                external
-                                pure
+    function registerFlight()
+        external
+        requireIsOperational()
+        requireAirlineRegistred()
+        
     {
 
     }
@@ -172,27 +203,16 @@ contract FlightSuretyApp {
     * @dev Called after oracle has updated flight status
     *
     */  
-    function processFlightStatus
-                                (
-                                    address airline,
-                                    string memory flight,
-                                    uint256 timestamp,
-                                    uint8 statusCode
-                                )
-                                internal
-                                pure
+    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode)
+        internal
+        pure
     {
     }
 
 
     // Generate a request for oracles to fetch flight information
-    function fetchFlightStatus
-                        (
-                            address airline,
-                            string flight,
-                            uint256 timestamp                            
-                        )
-                        external
+    function fetchFlightStatus(address airline,string flight,uint256 timestamp)
+        external
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -377,5 +397,20 @@ contract FlightSuretyApp {
     }
 
 // endregion
+
+// Insurance Related contract Functions
+    
+    /**
+    * @dev Buy insurance for a flight
+    *
+    */   
+    function buyInsurance()
+        external
+        payable
+        requireIsOperational()
+
+    {
+
+    }
 
 }   
