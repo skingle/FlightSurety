@@ -17,12 +17,12 @@ contract FlightSuretyData {
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
-    mapping (address => Airline) private airlines;
-    address[] private registredAirlines;
-    mapping (address => bool) private authorizedAppContract;
-    /********************************************************************************************/
-    /*                                       EVENT DEFINITIONS                                  */
-    /********************************************************************************************/
+    mapping (address => Airline) private airlines;                      // Airline info
+    address[] private registredAirlines;                                // list of registred airline
+    mapping (address => bool) private authorizedAppContract;            // list of authorized contracts tha can call this contract
+/********************************************************************************************/
+/*                                       EVENT DEFINITIONS                                  */
+/********************************************************************************************/
 
 
     /**
@@ -35,12 +35,12 @@ contract FlightSuretyData {
         contractOwner = msg.sender;
         //adding first airline
         airlines[firstAirline].isRegistred = true;
-        registredAirlines.push(firstAirline);
+        registredAirlines.push(firstAirline);   
     }
 
-    /********************************************************************************************/
-    /*                                       FUNCTION MODIFIERS                                 */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       FUNCTION MODIFIERS                                 */
+/********************************************************************************************/
 
     // Modifiers help avoid duplication of code. They are typically used to validate something
     // before a function is allowed to be executed.
@@ -74,9 +74,9 @@ contract FlightSuretyData {
         _;
     }
 
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       UTILITY FUNCTIONS                                  */
+/********************************************************************************************/
 
     /**
     * @dev Get operating status of contract
@@ -127,9 +127,9 @@ contract FlightSuretyData {
     {
             authorizedAppContract[contract_] = false;
     }    
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                     SMART CONTRACT FUNCTIONS                             */
+/********************************************************************************************/
 
    /**
     * @dev Add an airline to the registration queue
@@ -217,6 +217,14 @@ contract FlightSuretyData {
     {
         return airlines[airline].votes;
     }
+
+    function getAirlineInvestedFundAmount(address airline)
+        view
+        external
+        return(uint256)
+    {
+        return airlines[airline].investedFund;
+    }
     
     /**
     *   @dev register the vote for given airline
@@ -273,8 +281,8 @@ contract FlightSuretyData {
     *
     */
     function() 
-                            external 
-                            payable 
+        external 
+        payable 
     {
         fund();
     }

@@ -12,9 +12,9 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyApp {
     using SafeMath for uint256; // Allow SafeMath functions to be called for all uint256 types (similar to "prototype" in Javascript)
 
-    /********************************************************************************************/
-    /*                                       DATA VARIABLES                                     */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       DATA VARIABLES                                     */
+/********************************************************************************************/
 
     // Flight status codees
     uint8 private constant STATUS_CODE_UNKNOWN = 0;
@@ -29,7 +29,7 @@ contract FlightSuretyApp {
 
     address private contractOwner;          // Account used to deploy contract
     address private dataContractAddress;    // Data Contract Address
-    bool private operational;               // Operational status of the contract
+    bool    private operational;               // Operational status of the contract
     uint256 private seedAmount;             // seed amount in wei
     uint256 private insuranceCapPrice;      // max insurance can be purchased in wei
     
@@ -39,24 +39,27 @@ contract FlightSuretyApp {
         uint8 statusCode;
         uint256 updatedTimestamp;        
         address airline;
-    }
+        address[] insuredPassangres;
+    }    
 
     mapping(bytes32 => Flight) private flights;
-
+    mapping(address => mapping(bytes32=>uint256)) private passengerinsuranceAmount;
+    mapping(address => bytes32[]) passengerInsuredFlights;
+    //bytes32[] private listOfRegisterFlightsIndex;
     FlightSuretyData flightSuretyDataContract;
 
 
-    /********************************************************************************************/
-    /*                                              EVENTS                                      */
-    /********************************************************************************************/
-    //event voteAlreadyRecorded(string name,uint age);
+/********************************************************************************************/
+/*                                              EVENTS                                      */
+/********************************************************************************************/
+//event voteAlreadyRecorded(string name,uint age);
 
-    /********************************************************************************************/
-    /*                                       FUNCTION MODIFIERS                                 */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       FUNCTION MODIFIERS                                 */
 
-    // Modifiers help avoid duplication of code. They are typically used to validate something
-    // before a function is allowed to be executed.
+// Modifiers help avoid duplication of code. They are typically used to validate something
+// before a function is allowed to be executed.
+/********************************************************************************************/
 
     /**
     * @dev Modifier that requires the "operational" boolean variable to be "true"
@@ -88,6 +91,15 @@ contract FlightSuretyApp {
         _;
     }
 
+    /**
+    * @dev Modifier that requires airline to fund the contract with seed amount
+    */
+    modifier requireAirlineHasFundedContract()
+    {
+        require(flightSuretyDataContract.getAirlineInvestedFundAmount(msg.sender)>=seedAmount, "Airline has to fund the contract with seed amount");
+        _;
+    }
+
     // /**
     // * @dev Modifier that caps the price of insurance
     // */
@@ -97,9 +109,9 @@ contract FlightSuretyApp {
     //     _;
     // }
 
-    /********************************************************************************************/
-    /*                                       CONSTRUCTOR                                        */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       CONSTRUCTOR                                        */
+/********************************************************************************************/
 
     /**
     * @dev Contract constructor
@@ -115,9 +127,9 @@ contract FlightSuretyApp {
         insuranceCapPrice=_insuranceCapPrice;
     }
 
-    /********************************************************************************************/
-    /*                                       UTILITY FUNCTIONS                                  */
-    /********************************************************************************************/
+/********************************************************************************************/
+/*                                       UTILITY FUNCTIONS                                  */
+/********************************************************************************************/
 
     function isOperational() 
         public 
@@ -138,11 +150,12 @@ contract FlightSuretyApp {
     {
         operational = mode;
     }
+    
 
-    /********************************************************************************************/
-    /*                                     SMART CONTRACT FUNCTIONS                             */
-    /********************************************************************************************/
-
+/********************************************************************************************/
+/*                                     SMART CONTRACT FUNCTIONS                             */
+/********************************************************************************************/
+    
   
     /**
     * @dev Add an airline to the registration queue
@@ -190,13 +203,21 @@ contract FlightSuretyApp {
     * @dev Register a future flight for insuring.
     *
     */  
-    function registerFlight()
+    function registerFlight(string flightName,uint256 timestamp)
         external
         requireIsOperational()
         requireAirlineRegistred()
-        
+        requireAirlineHasFundedContract()   
     {
-
+        bytes32 flightKey = getFlightKey(msg.sender,flightName,timestamp);
+        
+        flights[flightKey] = Flight({
+                                        isRegistered:true,
+                                        statusCode:STATUS_CODE_UNKNOWN,
+                                        updatedTimestamp:timestamp
+                                        airline:msg.sender
+                                    });
+            
     }
     
    /**
@@ -207,12 +228,19 @@ contract FlightSuretyApp {
         internal
         pure
     {
+        bytes32 flightKey = getFlightKey(airline,flight,timestamp);
+        flights[flightKey].statusCode = statusCode;
+        if(statusCode = STATUS_CODE_LATE_AIRLINE){
+            //refund 1.5x
+        }
+        
     }
 
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(address airline,string flight,uint256 timestamp)
         external
+        public
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -227,7 +255,10 @@ contract FlightSuretyApp {
     } 
 
 
-// region ORACLE MANAGEMENT
+ 
+/********************************************************************************************/
+/*                                     ORACLE MANAGEMENT                                    */
+/********************************************************************************************/
 
     // Incremented to add pseudo-randomness at various points
     uint8 private nonce = 0;    
@@ -396,21 +427,28 @@ contract FlightSuretyApp {
         return random;
     }
 
-// endregion
-
-// Insurance Related contract Functions
+ 
+/********************************************************************************************/
+/*                                     INSURANCE FUNCTIONS                                    */
+/********************************************************************************************/
     
     /**
     * @dev Buy insurance for a flight
     *
     */   
-    function buyInsurance()
+    function buyInsurance(address airline, string flight, uint256 timestamp )
         external
         payable
         requireIsOperational()
 
     {
-
+        require(msg.value <= insuranceCapPrice,"Can buy insurance less than cap price");
+        flightSuretyDataContract.buy.value(msg.value)();
+        bytes32 key = getFlightKey(airline,flight,timestamp);
+        passengerinsuranceAmount[msg.sender][key] = msg.value;
+        passengerInsuredFlights[msg.sender].push(key);
+        fights[key].insuredPassangres.push(msg.sender);
+        
     }
 
 }   
