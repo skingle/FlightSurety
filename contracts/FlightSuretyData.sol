@@ -19,7 +19,8 @@ contract FlightSuretyData {
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
     mapping (address => Airline) private airlines;                      // Airline info
     address[] private registredAirlines;                                // list of registred airline
-    mapping (address => bool) private authorizedAppContract;            // list of authorized contracts tha can call this contract
+    mapping (address => bool) private authorizedAppContract;            // list of authorized contracts that can call this contract
+    mapping (address => uint256) private passengresAccountWallet;       // wallet for insuree
 /********************************************************************************************/
 /*                                       EVENT DEFINITIONS                                  */
 /********************************************************************************************/
@@ -152,18 +153,22 @@ contract FlightSuretyData {
     */   
     function buy()
         external
+        requireIsOperational()
+        requireAuthorizedContract(msg.sender)
         payable
     {
-
+        
     }
 
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees()
+    function creditInsurees(address passengre, uint256 amount)
         external
-        pure
+        requireIsOperational()
+        requireAuthorizedContract(msg.sender)
     {
+        passengresAccountWallet[passengre] += amount;
     }
     
 
@@ -171,10 +176,13 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay()
+    function pay(address passengre)
         external
-        pure
-    {
+        requireIsOperational()
+        //requireAuthorizedContract(msg.sender)
+    {   uint256 amount = passengresAccountWallet[passengre];
+        passengresAccountWallet[passengre] = 0;
+        passengre.transfer(amount);
     }
 
    /**
@@ -184,6 +192,7 @@ contract FlightSuretyData {
     */   
     function fund()
         public
+        requireIsOperational()
         payable
     {
     }
@@ -202,8 +211,9 @@ contract FlightSuretyData {
     function isAirlineRegistred(address airline)
         view
         external
-        return(bool)
+        returns(bool)
     {
+        
         return airlines[airline].isRegistred;
     }
 
@@ -213,7 +223,7 @@ contract FlightSuretyData {
     function getAirlineVoteCount(address airline)
         view
         external
-        return(uint256)
+        returns(uint256)
     {
         return airlines[airline].votes;
     }
@@ -221,7 +231,7 @@ contract FlightSuretyData {
     function getAirlineInvestedFundAmount(address airline)
         view
         external
-        return(uint256)
+        returns(uint256)
     {
         return airlines[airline].investedFund;
     }
@@ -231,8 +241,8 @@ contract FlightSuretyData {
     */
     function incrementAirlineVote(address airline)
         external
-        requireAuthorizedContract()
-        return(uint256)
+        requireAuthorizedContract(msg.sender)
+        returns(uint256)
     {   
         airlines[airline].votes = airlines[airline].votes + 1;
         airlines[airline].registredVotes[msg.sender] = true;
@@ -245,8 +255,8 @@ contract FlightSuretyData {
     function hasVoted(address airline)
         view
         external
-        requireAuthorizedContract()
-        return(bool)
+        requireAuthorizedContract(msg.sender)
+        returns(bool)
     {   
         return airlines[airline].registredVotes[msg.sender];
     }
@@ -257,7 +267,7 @@ contract FlightSuretyData {
     function getNumberOfRegistredAirlines()
         view
         external
-        return(uint256)
+        returns(uint256)
     {
         return registredAirlines.length;
     }
@@ -271,7 +281,7 @@ contract FlightSuretyData {
         external
         payable
         requireIsOperational()
-        requireAuthorizedContract()
+        requireAuthorizedContract(msg.sender)
     {
         airlines[airline].investedFund.add(msg.value);
     }

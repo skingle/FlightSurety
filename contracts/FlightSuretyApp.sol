@@ -5,6 +5,7 @@ pragma solidity ^0.4.25;
 // More info: https://www.nccgroup.trust/us/about-us/newsroom-and-events/blog/2018/november/smart-contract-insecurity-bad-arithmetic/
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "./FlightSuretyData.sol";
 
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -32,6 +33,7 @@ contract FlightSuretyApp {
     bool    private operational;               // Operational status of the contract
     uint256 private seedAmount;             // seed amount in wei
     uint256 private insuranceCapPrice;      // max insurance can be purchased in wei
+    uint256 private insuranceRefundMultiple;      // max insurance can be purchased in wei
     
 
     struct Flight {
@@ -117,7 +119,7 @@ contract FlightSuretyApp {
     * @dev Contract constructor
     *
     */
-    constructor(address dataContract, uint256 _seedAmount, uint256 _insuranceCapPrice) 
+    constructor(address dataContract, uint256 _seedAmount, uint256 _insuranceCapPrice, uint256 _insuranceRefundMultiple) 
         public 
     {
         contractOwner = msg.sender;
@@ -125,6 +127,7 @@ contract FlightSuretyApp {
         flightSuretyDataContract = new FlightSuretyData(dataContract);
         seedAmount = _seedAmount;
         insuranceCapPrice=_insuranceCapPrice;
+        insuranceRefundMultiple = _insuranceRefundMultiple;
     }
 
 /********************************************************************************************/
@@ -133,7 +136,7 @@ contract FlightSuretyApp {
 
     function isOperational() 
         public 
-        pure 
+        view 
         returns(bool) 
     {
         return operational;  // Modify to call data contract's status
@@ -170,19 +173,19 @@ contract FlightSuretyApp {
         requireAirlineRegistred()
         returns(bool success, uint256 votes)
     {
-        if(flightSuretyData.getNumberOfRegistredAirlines() < REGISTRATION_WITHOUT_VOTE) {
-            flightSuretyData.registerAirline(airline);
+        if(flightSuretyDataContract.getNumberOfRegistredAirlines() < REGISTRATION_WITHOUT_VOTE) {
+            flightSuretyDataContract.registerAirline(airline);
             success = true;
         }else{
             success = false;
-            require(!flightSuretyData.hasVoted(airline), "Already voted for the airline");
-            if(flightSuretyData.incrementAirlineVote(airline)>=flightSuretyData.getNumberOfRegistredAirlines().div(2)){
-                flightSuretyData.registerAirline(airline);
+            require(!flightSuretyDataContract.hasVoted(airline), "Already voted for the airline");
+            if(flightSuretyDataContract.incrementAirlineVote(airline)>=flightSuretyDataContract.getNumberOfRegistredAirlines().div(2)){
+                flightSuretyDataContract.registerAirline(airline);
             }
             success = true;
 
         }
-        return (success, flightSuretyData.getAirlineVoteCount(airline));
+        return (success, flightSuretyDataContract.getAirlineVoteCount(airline));
     }
 
     /**
@@ -192,7 +195,7 @@ contract FlightSuretyApp {
     function fund()
         public
         payable
-        isOperational()
+        requireIsOperational()
         requireAirlineRegistred()
     {   
         flightSuretyDataContract.receiveFundFromAirline.value(msg.value)(msg.sender);
@@ -210,12 +213,12 @@ contract FlightSuretyApp {
         requireAirlineHasFundedContract()   
     {
         bytes32 flightKey = getFlightKey(msg.sender,flightName,timestamp);
-        
         flights[flightKey] = Flight({
                                         isRegistered:true,
                                         statusCode:STATUS_CODE_UNKNOWN,
-                                        updatedTimestamp:timestamp
-                                        airline:msg.sender
+                                        updatedTimestamp:timestamp,
+                                        airline:msg.sender,
+                                        insuredPassangres:new address[](0)
                                     });
             
     }
@@ -226,12 +229,18 @@ contract FlightSuretyApp {
     */  
     function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode)
         internal
-        pure
+        
     {
         bytes32 flightKey = getFlightKey(airline,flight,timestamp);
         flights[flightKey].statusCode = statusCode;
-        if(statusCode = STATUS_CODE_LATE_AIRLINE){
+        oracleResponses[flightKey].isOpen = false;
+        if(statusCode == STATUS_CODE_LATE_AIRLINE){
             //refund 1.5x
+            for(uint256 i =0; i < flights[flightKey].insuredPassangres.length ; i++ ){
+                address passanger = flights[flightKey].insuredPassangres[i];
+                uint256 boughtInsurance = passengerinsuranceAmount[passanger][flightKey];
+                flightSuretyDataContract.creditInsurees(passanger, boughtInsurance.mul(insuranceRefundMultiple));
+            }
         }
         
     }
@@ -240,7 +249,7 @@ contract FlightSuretyApp {
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus(address airline,string flight,uint256 timestamp)
         external
-        public
+        requireIsOperational()
     {
         uint8 index = getRandomIndex(msg.sender);
 
@@ -447,7 +456,7 @@ contract FlightSuretyApp {
         bytes32 key = getFlightKey(airline,flight,timestamp);
         passengerinsuranceAmount[msg.sender][key] = msg.value;
         passengerInsuredFlights[msg.sender].push(key);
-        fights[key].insuredPassangres.push(msg.sender);
+        flights[key].insuredPassangres.push(msg.sender);
         
     }
 
