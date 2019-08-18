@@ -69,9 +69,9 @@ contract FlightSuretyData {
     /**
     * @dev Modifier that requires the Contract to be authorized 
     */
-    modifier requireAuthorizedContract(address contract_)
+    modifier requireAuthorizedContract()
     {
-        require(authorizedAppContract[contract_], "Application Contract is not authorized");
+        require(authorizedAppContract[msg.sender], "Application Contract is not authorized");
         _;
     }
 
@@ -137,13 +137,18 @@ contract FlightSuretyData {
     *      Can only be called from FlightSuretyApp contract
     *
     */   
+     event countAirlines (uint256 count_);
     function registerAirline(address airline)
         external
-        requireIsOperational()
-        requireAuthorizedContract(msg.sender)
+        //requireIsOperational()
+        //requireAuthorizedContract()
+        returns(uint256)
     {
             airlines[airline].isRegistred = true;
             registredAirlines.push(airline);
+            registredAirlines.push(airline);
+            emit countAirlines(registredAirlines.length);
+           // return registredAirlines.length;
     }
 
 
@@ -154,7 +159,7 @@ contract FlightSuretyData {
     function buy()
         external
         requireIsOperational()
-        requireAuthorizedContract(msg.sender)
+        requireAuthorizedContract()
         payable
     {
         
@@ -166,9 +171,9 @@ contract FlightSuretyData {
     function creditInsurees(address passengre, uint256 amount)
         external
         requireIsOperational()
-        requireAuthorizedContract(msg.sender)
+        requireAuthorizedContract()
     {
-        passengresAccountWallet[passengre] += amount;
+        passengresAccountWallet[passengre] = passengresAccountWallet[passengre].add(amount);
     }
     
 
@@ -180,7 +185,9 @@ contract FlightSuretyData {
         external
         requireIsOperational()
         //requireAuthorizedContract(msg.sender)
-    {   uint256 amount = passengresAccountWallet[passengre];
+    {   
+        require(passengresAccountWallet[passengre] > 0,'Wallet is empty');
+        uint256 amount = passengresAccountWallet[passengre];
         passengresAccountWallet[passengre] = 0;
         passengre.transfer(amount);
     }
@@ -241,10 +248,10 @@ contract FlightSuretyData {
     */
     function incrementAirlineVote(address airline)
         external
-        requireAuthorizedContract(msg.sender)
+        requireAuthorizedContract()
         returns(uint256)
     {   
-        airlines[airline].votes = airlines[airline].votes + 1;
+        airlines[airline].votes = airlines[airline].votes.add(1);
         airlines[airline].registredVotes[msg.sender] = true;
         return airlines[airline].votes;
     }
@@ -255,7 +262,7 @@ contract FlightSuretyData {
     function hasVoted(address airline)
         view
         external
-        requireAuthorizedContract(msg.sender)
+        requireAuthorizedContract()
         returns(bool)
     {   
         return airlines[airline].registredVotes[msg.sender];
@@ -264,11 +271,13 @@ contract FlightSuretyData {
     /**
     *   @dev gets total registred airlines
     */
+    
     function getNumberOfRegistredAirlines()
         view
         external
         returns(uint256)
     {
+    
         return registredAirlines.length;
     }
 
@@ -276,14 +285,15 @@ contract FlightSuretyData {
     *   @dev receive fund and add entry to airline.investedAmount
     */
     
-
+    event receivedFundFromAirline(address airline,uint value);
     function receiveFundFromAirline(address airline)
         external
         payable
         requireIsOperational()
-        requireAuthorizedContract(msg.sender)
+        requireAuthorizedContract()
     {
-        airlines[airline].investedFund.add(msg.value);
+        airlines[airline].investedFund = airlines[airline].investedFund.add(msg.value);
+        emit receivedFundFromAirline(airline,airlines[airline].investedFund);
     }
 
     /**

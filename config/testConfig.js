@@ -19,13 +19,16 @@ var Config = async function(accounts) {
         "0x2f2899d6d35b1a48a4fbdc93a37a72f264a9fca7"
     ];
 
+    
 
     let owner = accounts[0];
     let firstAirline = accounts[1];
-
-    let flightSuretyData = await FlightSuretyData.new();
-    let flightSuretyApp = await FlightSuretyApp.new();
-
+    let insuranceCap = web3.utils.toWei("1", "ether");
+    //let _insuranceRefundMultiple = 1.5;
+    let seedFundAmount = web3.utils.toWei("10", "ether");
+    let flightSuretyData = await FlightSuretyData.new(firstAirline);
+    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address,seedFundAmount,insuranceCap,15,10);
+    
     
     return {
         owner: owner,
