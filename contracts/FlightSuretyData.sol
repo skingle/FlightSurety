@@ -146,7 +146,6 @@ contract FlightSuretyData {
     {
             airlines[airline].isRegistred = true;
             registredAirlines.push(airline);
-            registredAirlines.push(airline);
             emit countAirlines(registredAirlines.length);
            // return registredAirlines.length;
     }
@@ -242,6 +241,8 @@ contract FlightSuretyData {
     {
         return airlines[airline].investedFund;
     }
+
+    
     
     /**
     *   @dev register the vote for given airline
@@ -282,6 +283,19 @@ contract FlightSuretyData {
     }
 
     /**
+    *   @dev gets total registred airlines
+    */
+    
+    function getRegistredAirlines(uint256 index)
+        view
+        external
+        returns(address)
+    {
+    
+        return registredAirlines[index];
+    }
+
+    /**
     *   @dev receive fund and add entry to airline.investedAmount
     */
     
@@ -293,7 +307,7 @@ contract FlightSuretyData {
         requireAuthorizedContract()
     {
         airlines[airline].investedFund = airlines[airline].investedFund.add(msg.value);
-        emit receivedFundFromAirline(airline,airlines[airline].investedFund);
+        //emit receivedFundFromAirline(airline,airlines[airline].investedFund);
     }
 
     /**

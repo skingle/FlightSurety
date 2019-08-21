@@ -214,7 +214,7 @@ contract FlightSuretyApp {
         requireIsOperational()
         requireAirlineRegistred()
     {   
-        emit recivedfund(msg.sender,msg.value);
+       // emit recivedfund(msg.sender,msg.value);
         flightSuretyDataContract.receiveFundFromAirline.value(msg.value)(msg.sender);
     }
 
