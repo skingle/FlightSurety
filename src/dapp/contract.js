@@ -3,6 +3,7 @@ import FlightSuretyData from '../../build/contracts/FlightSuretyData.json';
 import Config from './config.json';
 import Web3 from 'web3';
 
+
 export default class Contract {
     constructor(network, callback) {
 
@@ -110,6 +111,30 @@ export default class Contract {
         });
        
     }
+
+    authorizeAppContract(contract,callback){
+        let self = this;
+        console.log(contract);
+        self.flightSuretyData.methods  
+        .authorizeAppContract(contract)
+        .send({from: self.owner},callback);
+    }
+
+    deauthorizeAppContract(contract,callback){
+        let self = this;
+        self.flightSuretyData.methods  
+        .deauthorizeAppContract(contract)
+        .send({from: self.owner},callback);
+    }
+
+    registerAirline(airline,voter,callback){
+        let self = this;
+       
+        self.flightSuretyApp.methods
+        .registerAirline(airline)
+        .send({from:voter},callback)  
+    }
+
     fund(account,fundValue,callback){
         let self = this;
         self.flightSuretyApp.methods

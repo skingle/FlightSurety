@@ -2,7 +2,9 @@
 import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
+import Config from './config.json';
 var currentAccount = "";
+var selectedAirlineForReg="";
 
 (async() => {
 
@@ -13,6 +15,8 @@ var currentAccount = "";
         document.getElementById("accounts_list").innerHTML='<div style="padding-left : 15px;">Airlines</div>';
         for(let i = 0 ; i < contract.airlines.length ; i++){
             document.getElementById("accounts_list").innerHTML=document.getElementById("accounts_list").innerHTML + generateDropDownItem(contract.airlines[i]);
+            document.getElementById("airline_accounts_list").innerHTML=document.getElementById("accounts_list").innerHTML + generateDropDownItem(contract.airlines[i]);
+        
         }
 
         document.getElementById("accounts_list").innerHTML=document.getElementById("accounts_list").innerHTML + 
@@ -28,6 +32,13 @@ var currentAccount = "";
             //console.log($(this).text());
             document.getElementById('selected_account').innerHTML=$(this).text();
             currentAccount = $(this).text();
+            
+        });
+
+        $('#airline_accounts_list a').on('click', function(){
+            //console.log($(this).text());
+            document.getElementById('bt_airline_select_reg').innerText=$(this).text();
+            selectedAirlineForReg = $(this).text();
             
         });
         
@@ -47,8 +58,13 @@ var currentAccount = "";
             //console.log(error,result);
             //display('Operational Status Data', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
+        
+        contract.authorizeAppContract(Config.localhost.appAddress,(error,result)=>{
+                console.log("error :: " +error);
+                console.log("result :: " +result);
+        });
 
-        contract.getRegistredAirlines(loadRegistredAirlines)
+        contract.getRegistredAirlines(loadRegistredAirlines);
 
         
 
@@ -71,7 +87,7 @@ var currentAccount = "";
             
         })
 
-        DOM.elid('app_contract_toggle').addEventListener('click', () => {
+        DOM.elid('data_contract_toggle').addEventListener('click', () => {
             let toggle = document.getElementById('app_contract_toggle');
             // Write transaction
             contract.setAppContractOprationalStatus(toggle.checked,(error, result) => {
@@ -85,6 +101,16 @@ var currentAccount = "";
             let input = document.getElementById('input_fund_amount');
             // Write transaction
             contract.fund(currentAccount,input.value,(error, result) => {
+                console.log(error,result);
+                //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+            });
+            
+        })
+
+        DOM.elid('bt_reg').addEventListener('click', () => {
+            let input = document.getElementById('input_fund_amount');
+            // Write transaction
+            contract.registerAirline(selectedAirlineForReg,currentAccount,(error, result) => {
                 console.log(error,result);
                 //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
             });
