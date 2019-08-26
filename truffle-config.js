@@ -9,7 +9,15 @@ module.exports = {
       },
       network_id: '*',
       gas: 9999999
+    },
+    develop: {
+      port: 8545,
+      network_id: 20,
+      accounts: 30,
+      defaultEtherBalance: 500,
     }
+
+
   },
   compilers: {
     solc: {

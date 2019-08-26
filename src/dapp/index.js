@@ -3,6 +3,7 @@ import DOM from './dom';
 import Contract from './contract';
 import './flightsurety.css';
 import Config from './config.json';
+
 var currentAccount = "";
 var selectedAirlineForReg="";
 
@@ -11,6 +12,11 @@ var selectedAirlineForReg="";
     
 
     let contract = new Contract('localhost', () => {
+
+        
+        //console.log(JSON.stringify(contract.flightSuretyData));
+        //contract.getRegistredFlights();9999
+
         //Load accounts in a selector
         document.getElementById("accounts_list").innerHTML='<div style="padding-left : 15px;">Airlines</div>';
         for(let i = 0 ; i < contract.airlines.length ; i++){
@@ -41,6 +47,7 @@ var selectedAirlineForReg="";
             selectedAirlineForReg = $(this).text();
             
         });
+
         
 
         // Read transaction
@@ -117,10 +124,33 @@ var selectedAirlineForReg="";
             
         })
 
-      
+        DOM.elid('bt_flight_reg').addEventListener('click', () => {
+            let input = document.getElementById('input_fund_amount');
+            let flightName = document.getElementById('input_flight_name').value;
+            let flightDate = document.getElementById('input_flight_datetime').valueAsNumber/1000;
+            // Write transaction
+            contract.registerFlight(flightName,flightDate,currentAccount,(error, result) => {
+                console.log(error,result);
+                showToast(error);
+                //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+            });
+            
+        })
+        contract.getRegistredFlights(()=>{});
+        //Subscribing for events
+        contract.flightSuretyApp.events.AirlineHasBeenRegistred(function(error, event){ console.log(event);
+            contract.getRegistredAirlines(loadRegistredAirlines);
+        })
         
     });
-    
+
+   // contract.getRegistredFlights();
+    $(document).ready(function(){
+        $("#myToast").toast('show');
+        $(".show-toast").click(function(){
+            $("#myToast").toast('show');
+        });
+    });
 
 })();
 
@@ -153,8 +183,30 @@ function loadRegistredAirlines(error,result){
 
 
 function generateDropDownItem(text){
-    return `<a class="dropdown-item" href="#">${text}</a>`
+    return `<a class="dropdown-item" href="#">${text}</a>` ;
 }
 
+
+function showToast(text){
+    let toast = `<div class="toast"  style="position: fixed; right:0;"  data-delay="8000" data-autohide="true">
+    <div class="toast-header">
+      <!-- <img src="..." class="rounded mr-2" alt="..."> -->
+      <strong class="mr-auto">Bootstrap</strong>
+      <small>11 mins ago</small>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body">
+      ${text}
+    </div>
+  </div>`
+
+  let toast_container = document.getElementById("toast_container");
+  toast_container.innerHTML = toast;
+  $(".toast").toast('show');
+  //document.getElementsByClassName("toast").toast("show")
+
+}
 
 

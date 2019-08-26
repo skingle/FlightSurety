@@ -8,14 +8,15 @@ contract('Flight Surety Tests', async (accounts) => {
   const regTimestamp = Math.floor(Date.now() / 1000);
   before('setup contract', async () => {
     config = await Test.Config(accounts);
-    // config.flightSuretyData.receivedFundFromAirline()
-    // .on('data', event =>console.log(event) );
+    console.log("firstAirline :: " +config.firstAirline );
+    config.flightSuretyData.receivedFundFromAirline()
+    .on('data', event =>console.log(event) );
 
     // config.flightSuretyApp.recivedfund()
     // .on('data', event =>console.log(event) );
     
-    // config.flightSuretyApp.flightHasBeenReg()
-    // .on('data', event =>console.log(event) );
+    config.flightSuretyApp.FlightHasBeenRegistred()
+    .on('data', event =>console.log(event) );
 
     // config.flightSuretyData.noOfRegistredAirlines()
     // .on('data', event =>console.log(event) );
@@ -24,8 +25,7 @@ contract('Flight Surety Tests', async (accounts) => {
     //.on('data', event =>console.log(event) );
 
     let log = await config.flightSuretyData.authorizeAppContract(config.flightSuretyApp.address, {from:config.owner});
-     log = await config.flightSuretyData.authorizeAppContract(accounts[2], {from:config.owner});
-    console.log("LOG :: "+JSON.stringify(log) + " App address :: " + config.flightSuretyApp.address +" owner :: "+ config.owner);
+   // console.log("LOG :: "+JSON.stringify(log) + " App address :: " + config.flightSuretyApp.address +" owner :: "+ config.owner);
   });
 
   /****************************************************************************************/
@@ -117,18 +117,19 @@ contract('Flight Surety Tests', async (accounts) => {
     
     let flight = 'ND1309'; // Course number
     //await config.flightSuretyData.registerAirline( accounts[5],{from:accounts[2]});
-
+    let numberOfAirlinesReg_before =await config.flightSuretyData.getNumberOfRegistredAirlines.call();
     //funding the contract with 10 ether
     await config.flightSuretyApp.fund({from:config.firstAirline,value:web3.utils.toWei("10", "ether")});
     //registring 4 airlines
     for(let i = 2 ; i < 5 ; i++){
-        
-        let result = await config.flightSuretyApp.registerAirline.call(accounts[i] ,{from:config.firstAirline});  
-        console.log("Airline : " + accounts[i] + " Status : " + result[0] + " Vote : " + result[1] );
-        assert.equal(result[0], true, "Airline should be able to register another airline if fund is provided ");  
+        //console.log(config.flightSuretyApp.registerAirline);
+        let result = await config.flightSuretyApp.registerAirline.sendTransaction(accounts[i] ,{from:config.firstAirline});
+       // console.log("Airline : " + accounts[i] + " Status : " + result[0]+ " Vote : " + result[1] );
+       
     }
-    let numberOfAirlinesReg =await config.flightSuretyData.getNumberOfRegistredAirlines.call();
-    console.log("Registred Airlines : " + numberOfAirlinesReg );
+    let numberOfAirlinesReg_after =await config.flightSuretyData.getNumberOfRegistredAirlines.call();
+    console.log("Registred Airlines : " + numberOfAirlinesReg_after );
+    assert.equal(numberOfAirlinesReg_before < numberOfAirlinesReg_after, true, "Airline should be able to register another airline if fund is provided ");  
   });
  
 

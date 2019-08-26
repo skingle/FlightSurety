@@ -8,6 +8,8 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
+
+    
     struct Airline{
         bool isRegistred;
         uint256 votes;
@@ -21,6 +23,47 @@ contract FlightSuretyData {
     address[] private registredAirlines;                                // list of registred airline
     mapping (address => bool) private authorizedAppContract;            // list of authorized contracts that can call this contract
     mapping (address => uint256) private passengresAccountWallet;       // wallet for insuree
+
+
+    // Flight status codees
+    uint8 private constant STATUS_CODE_UNKNOWN = 0;
+    uint8 private constant STATUS_CODE_ON_TIME = 10;
+    uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
+    uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
+    uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
+    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+
+    struct Flight {
+        string name;
+        bool isRegistred;
+        uint8 statusCode;
+        uint256 updatedTimestamp;   
+        uint256 flightRegistrationTimestamp;     
+        address airline;
+        address[] insuredPassangres;
+    }    
+
+    mapping(bytes32 => Flight) public  flights;
+    bytes32[] public  registredFlightKeys;
+    mapping(address => mapping(bytes32=>uint256)) private passengerInsuranceAmount;
+    mapping(address => bytes32[]) private passengerInsuredFlights;
+
+    
+    function getNumberOfRegistredFlights()
+        view
+        external
+        returns(uint256)
+    {
+        return registredFlightKeys.length;
+    }
+    function getRegistredFlights(uint256 i)
+        view
+        external
+        returns(bytes32)
+    {
+        return registredFlightKeys[i];
+    }
+    
 /********************************************************************************************/
 /*                                       EVENT DEFINITIONS                                  */
 /********************************************************************************************/
@@ -131,23 +174,21 @@ contract FlightSuretyData {
 /********************************************************************************************/
 /*                                     SMART CONTRACT FUNCTIONS                             */
 /********************************************************************************************/
-
+//Airlines 
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
     *
     */   
-     event countAirlines (uint256 count_);
+   
     function registerAirline(address airline)
         external
-        //requireIsOperational()
-        //requireAuthorizedContract()
-        returns(uint256)
+        requireIsOperational()
+        requireAuthorizedContract()
     {
             airlines[airline].isRegistred = true;
             registredAirlines.push(airline);
-            emit countAirlines(registredAirlines.length);
-           // return registredAirlines.length;
+            
     }
 
 
@@ -247,26 +288,27 @@ contract FlightSuretyData {
     /**
     *   @dev register the vote for given airline
     */
-    function incrementAirlineVote(address airline)
+    function incrementAirlineVote(address airline,address voter)
         external
         requireAuthorizedContract()
+        requireIsOperational()
         returns(uint256)
     {   
         airlines[airline].votes = airlines[airline].votes.add(1);
-        airlines[airline].registredVotes[msg.sender] = true;
+        airlines[airline].registredVotes[voter] = true;
         return airlines[airline].votes;
     }
 
     /**
     *   @dev get the vote of the participent
     */
-    function hasVoted(address airline)
+    function hasVoted(address airline, address voter)
         view
         external
         requireAuthorizedContract()
         returns(bool)
     {   
-        return airlines[airline].registredVotes[msg.sender];
+        return airlines[airline].registredVotes[voter];
     }
 
     /**
@@ -321,6 +363,107 @@ contract FlightSuretyData {
         fund();
     }
 
+//Flight
+    
 
+    
+
+    function registerFlight(string flightName,uint256 timestamp,address airline_)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+        bytes32 flightKey = getFlightKey(airline_,flightName,timestamp);
+        flights[flightKey] = Flight({
+                                        name:flightName,
+                                        isRegistred:true,
+                                        statusCode:STATUS_CODE_UNKNOWN,
+                                        updatedTimestamp:timestamp,
+                                        flightRegistrationTimestamp:timestamp,
+                                        airline:airline_,
+                                        insuredPassangres:new address[](0)
+                                    });
+        registredFlightKeys.push(flightKey);                            
+        
+    }
+    function setFlightIsRegistred(bytes32 key, bool isRegistred)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+            flights[key].isRegistred = isRegistred;
+    }
+
+    function setFlightStatusCode(bytes32 key, uint8 statusCode)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+            flights[key].statusCode = statusCode;
+    }
+
+    function setFlightUpdatedTimestamp(bytes32 key, uint256 updatedTimestamp)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+            flights[key].updatedTimestamp = updatedTimestamp;
+    }
+    
+    function addInsuredPassangres(bytes32 key, address isuredPassangres)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+            flights[key].insuredPassangres.push(isuredPassangres) ;
+    }
+
+    function getNumberOfInsuredPassangres(bytes32 key)
+        view
+        external
+        returns (uint256)
+    {
+        return flights[key].insuredPassangres.length;
+    }
+
+    function getInsuredPassangresAt(bytes32 key, uint256 index)
+        view
+        external
+        returns (address)
+    {
+        return flights[key].insuredPassangres[index];
+    }
+
+    function addPassengerInsuredFlights( address passenger, bytes32 flightKey)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+        passengerInsuredFlights[passenger].push(flightKey);
+    }
+
+    function setPassengerInsuranceAmount(address passenger, bytes32 flightKey,uint256 amount)
+        external
+        requireIsOperational()
+        requireAuthorizedContract()
+    {
+        passengerInsuranceAmount[passenger][flightKey] = amount;
+    }
+
+    function getPassengerInsuranceAmount(address passenger, bytes32 flightKey)
+        view
+        external
+        returns(uint256)
+    {
+        return passengerInsuranceAmount[passenger][flightKey];
+    }
+
+    function getIsFlightRegistred(bytes32 key)
+        view
+        external
+        returns(bool)
+    {
+        return flights[key].isRegistred;
+    }
 }
 

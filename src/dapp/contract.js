@@ -8,7 +8,7 @@ export default class Contract {
     constructor(network, callback) {
 
         let config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
+        this.web3 = new Web3(new Web3.providers.WebsocketProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
         this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
         this.initialize(callback);
@@ -24,7 +24,7 @@ export default class Contract {
 
             let counter = 1;
             
-            while(this.airlines.length < 5) {
+            while(this.airlines.length < 8) {
                 this.airlines.push(accts[counter++]);
             }
 
@@ -129,10 +129,9 @@ export default class Contract {
 
     registerAirline(airline,voter,callback){
         let self = this;
-       
         self.flightSuretyApp.methods
         .registerAirline(airline)
-        .send({from:voter},callback)  
+        .send({from:voter,gas: 1000000},callback)  
     }
 
     fund(account,fundValue,callback){
@@ -142,4 +141,20 @@ export default class Contract {
         .send({from:account.trim(), value:this.web3.utils.toWei(fundValue, "ether")},callback);
 
     }
+
+    registerFlight(flightName,timestamp,airline,callback){
+        let self = this;
+        self.flightSuretyApp.methods
+        .registerFlight(flightName  ,timestamp)
+        .send({from:airline,gas:1000000},callback);
+    }
+
+    getRegistredFlights(callback){
+        let self  = this;
+        self.flightSuretyData.methods.registredFlightKeys.call({ from: self.owner},async(error,result)=>{
+            console.log("byte32 :: "+result);
+        });
+       // console.log(JSON.stringify(registredFlightCount);
+    }
+  
 }

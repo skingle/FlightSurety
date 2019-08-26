@@ -23,6 +23,7 @@ var Config = async function(accounts) {
 
     let owner = accounts[0];
     let firstAirline = accounts[1];
+    
     let insuranceCap = web3.utils.toWei("1", "ether");
     //let _insuranceRefundMultiple = 1.5;
     let seedFundAmount = web3.utils.toWei("10", "ether");
