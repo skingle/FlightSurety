@@ -461,21 +461,23 @@ contract FlightSuretyApp {
     * @dev Buy insurance for a flight
     *
     */   
-    
+    event InsuranceSuccessfullyPurchased(address,string,uint256,uint256);
     function buyInsurance(address airline, string flight, uint256 timestamp )
         external
         payable
         requireIsOperational()
         requireFlightIsRegistred(airline,flight,timestamp)
+       
 
-    {
-        require(msg.value <= insuranceCapPrice,"Can buy insurance less than cap price");
-        flightSuretyDataContract.buy.value(msg.value)();
+    {   
         bytes32 key = getFlightKey(airline,flight,timestamp);
+        require(flightSuretyDataContract.getPassengerInsuranceAmount(msg.sender,key) == 0,"Insurance Already Bought");
+        require(msg.value <= insuranceCapPrice,"Can not buy insurance greater than cap price ");
+        flightSuretyDataContract.buy.value(msg.value)();
         flightSuretyDataContract.setPassengerInsuranceAmount(msg.sender,key,msg.value);
         flightSuretyDataContract.addPassengerInsuredFlights(msg.sender,key);
         flightSuretyDataContract.addInsuredPassangres(key,msg.sender);
-        
+        emit InsuranceSuccessfullyPurchased(airline,flight,timestamp,msg.value);
     }
 
 }   

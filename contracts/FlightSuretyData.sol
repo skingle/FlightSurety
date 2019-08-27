@@ -442,6 +442,24 @@ contract FlightSuretyData {
         passengerInsuredFlights[passenger].push(flightKey);
     }
 
+     function getPassengersInsuredFlightCount( address passenger)
+        view
+        external
+        returns(uint256)
+    {
+        return passengerInsuredFlights[passenger].length;
+        
+    }
+
+    function getPassengersInsuredFlights( address passenger, uint256 index)
+        view
+        external
+        returns (bytes32)
+    {
+       return passengerInsuredFlights[passenger][index];
+    }
+    
+
     function setPassengerInsuranceAmount(address passenger, bytes32 flightKey,uint256 amount)
         external
         requireIsOperational()

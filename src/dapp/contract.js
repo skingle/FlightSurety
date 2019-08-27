@@ -149,12 +149,67 @@ export default class Contract {
         .send({from:airline,gas:1000000},callback);
     }
 
-    getRegistredFlights(callback){
+    getRegistredFlights(callback,storeArray){
         let self  = this;
-        self.flightSuretyData.methods.registredFlightKeys.call({ from: self.owner},async(error,result)=>{
-            console.log("byte32 :: "+result);
+        let registerFlights =  [];
+        self.flightSuretyData.methods.getNumberOfRegistredFlights().call(async (error, result)=>{
+            let registredFligthCount = result;
+            for(let i  = 0 ; i < registredFligthCount ; i++ ){
+               await self.flightSuretyData.methods.registredFlightKeys(i).call({ from: self.owner},async(error,result_)=>{
+                    //console.log("byte32 :: "+result_);
+                    await self.flightSuretyData.methods.flights(result_).call(async (error , flight)=>{
+                        //console.log("Flights :: "+JSON.stringify(flight));
+                        registerFlights.push(flight);
+                        callback(flight);
+                        if(i===(registredFligthCount-1)){
+                            console.table(registerFlights);
+                            storeArray(registerFlights);
+                        }
+                    })   
+                });
+    
+            }
+            
+           
         });
+        
        // console.log(JSON.stringify(registredFlightCount);
+    }
+
+    getInsuredFlights(passenger,callback,storeArray){
+        let self  = this;
+        let insuredFlights =  [];
+        self.flightSuretyData.methods.getPassengersInsuredFlightCount(passenger).call(async (error, result)=>{
+            let insuredFligthCount = result;
+            for(let i  = 0 ; i < insuredFligthCount ; i++ ){
+               await self.flightSuretyData.methods.getPassengersInsuredFlights(passenger,i).call({ from: self.owner},async(error,result_)=>{
+                    //console.log("byte32 :: "+result_);
+                    await self.flightSuretyData.methods.flights(result_).call(async (error , flight)=>{
+                        //console.log("Flights :: "+JSON.stringify(flight));
+                        insuredFlights.push(flight);
+                        callback(flight);
+                        if(i===(insuredFligthCount-1)){
+                            console.table(insuredFlights);
+                            storeArray(insuredFlights);
+                        }
+                    })   
+                });
+    
+            }
+            
+           
+        });
+        
+       // console.log(JSON.stringify(registredFlightCount);
+    }
+
+
+    buyInsurance(airline,flight,timestamp,insurer,amount,callback)
+    {
+        let self = this;
+        self.flightSuretyApp.methods
+        .buyInsurance(airline,flight,timestamp)
+        .send({from:insurer,value:this.web3.utils.toWei(amount, "ether"),gas:1000000},callback)
     }
   
 }

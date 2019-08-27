@@ -6,7 +6,10 @@ import Config from './config.json';
 
 var currentAccount = "";
 var selectedAirlineForReg="";
-
+var selectedFlightForInsurance="";
+var selectedFlightForOracalRes="";
+var flights=[];
+var passengerInsuredflights=[];
 (async() => {
 
     
@@ -38,6 +41,21 @@ var selectedAirlineForReg="";
             //console.log($(this).text());
             document.getElementById('selected_account').innerHTML=$(this).text();
             currentAccount = $(this).text();
+            $('#insured_flights')[0].innerHTML="";
+            contract.getInsuredFlights(currentAccount,(flight)=>{
+                console.log(flight);
+                loadInsuredFlights(undefined,flight);
+            },(flights_)=>{
+                passengerInsuredflights=flights_;
+                
+                $('#insured_flights li').click(function(){ 
+                
+                    $('#insured_flights li').removeClass("active")
+                    $(this).addClass(" active  ");
+                    selectedFlightForOracalRes = passengerInsuredflights[ $(this).index()];
+                });
+                
+            });
             
         });
 
@@ -134,12 +152,75 @@ var selectedAirlineForReg="";
                 showToast(error);
                 //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
             });
+            $('#registred_flights')[0].innerHTML="";
+            contract.getRegistredFlights((flight)=>{
+                console.log(flight);
+                loadRegistredFlights(undefined,flight);
+            },(flights_)=>{
+                flights=flights_;
+                $('#registred_flights li').click(function(){ 
             
+                    $('#registred_flights li').removeClass("active")
+                    $(this).addClass(" active  ");
+                    selectedFlightForInsurance = flights[ $(this).index()];
+                });
+            })}
+        )
+
+        DOM.elid('bt_buy_insurance').addEventListener('click', () => {
+            let input = document.getElementById('input_insurance_amount').value;
+            // Write transaction
+            contract.buyInsurance(
+                selectedFlightForInsurance["airline"],
+                selectedFlightForInsurance["name"],
+                selectedFlightForInsurance["flightRegistrationTimestamp"],
+                currentAccount,
+                input,
+                (error, result) => {console.log(error,result);}
+            );
+            selectedFlightForInsurance="";
+            $('#registred_flights li').removeClass("active");
+            $('#insured_flights')[0].innerHTML="";    
+            contract.getInsuredFlights(currentAccount,(flight)=>{
+                console.log(flight);
+                loadInsuredFlights(undefined,flight);
+            },(flights_)=>{
+                passengerInsuredflights=flights_;
+                
+                $('#insured_flights li').click(function(){ 
+                
+                    $('#insured_flights li').removeClass("active")
+                    $(this).addClass(" active  ");
+                    selectedFlightForOracalRes = passengerInsuredflights[ $(this).index()];
+                });
+                
+            });
         })
-        contract.getRegistredFlights(()=>{});
+        
+            
+        contract.getRegistredFlights((flight)=>{
+            console.log(flight);
+            loadRegistredFlights(undefined,flight);
+        },(flights_)=>{
+            flights=flights_;
+            
+            $('#registred_flights li').click(function(){ 
+            
+                $('#registred_flights li').removeClass("active")
+                $(this).addClass(" active  ");
+                selectedFlightForInsurance = flights[ $(this).index()];
+            });
+            
+        });
+
+        
+        
+        
+    
         //Subscribing for events
-        contract.flightSuretyApp.events.AirlineHasBeenRegistred(function(error, event){ console.log(event);
-            contract.getRegistredAirlines(loadRegistredAirlines);
+        contract.flightSuretyApp.events.AirlineHasBeenRegistred(function(error, event){ 
+            console.log(event);
+            //contract.getRegistredAirlines(loadRegistredAirlines);
         })
         
     });
@@ -150,7 +231,11 @@ var selectedAirlineForReg="";
         $(".show-toast").click(function(){
             $("#myToast").toast('show');
         });
+
+        
     });
+
+
 
 })();
 
@@ -180,6 +265,35 @@ function loadRegistredAirlines(error,result){
                 regAirlineList.innerHTML= regAirlineList.innerHTML + listItem.replace('###',result[i]); 
             }
 }
+
+function loadRegistredFlights(error,result){
+    let regFlightsList = document.getElementById('registred_flights');
+            let listItem=`<li class="list-group-item">
+            <lable>Name : </lable>${result["name"]}<br>
+            <lable>Airline : </lable>${result["airline"]}<br>
+            <lable>Departure Time : </lable>${Date(result["flightRegistrationTimestamp"]).toLocaleString()}<br>
+            </li>`
+              
+            
+            
+            regFlightsList.innerHTML= regFlightsList.innerHTML + listItem; 
+
+}
+
+function loadInsuredFlights(error,result){
+    let insuredFlightList = document.getElementById('insured_flights');
+            let listItem=`<li class="list-group-item">
+            <lable>Name : </lable>${result["name"]}<br>
+            <lable>Airline : </lable>${result["airline"]}<br>
+            <lable>Departure Time : </lable>${Date(result["flightRegistrationTimestamp"]).toLocaleString()}<br>
+            </li>`
+              
+            
+            
+            insuredFlightList.innerHTML= insuredFlightList.innerHTML + listItem; 
+
+}
+
 
 
 function generateDropDownItem(text){

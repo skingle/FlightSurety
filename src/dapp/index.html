@@ -210,10 +210,7 @@
                 <div class = "col-sm-6"> <label >Registred Airlines</label> </div>
                 <div class = "col-sm-6"> 
                     <ul id="rg_airline_list" class="list-group">
-                        <li class="list-group-item">Pictures</li>
-                        <li class="list-group-item">Documents</li>        
-                        <li class="list-group-item">Music</li>
-                        <li class="list-group-item">Videos</li>
+                        
                     </ul>
                 </div>
         
@@ -268,53 +265,33 @@
                     
                        <ul id="registred_flights"  class="list-group overflow-auto" style="height:300px; width: auto; padding: 10px;">
                             
-                                <li class="list-group-item"  >    
-            
-                                      <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                   
-                                </li>
-                                <li class="list-group-item">    
-                                     
-                                            <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                         
-                                </li>
-                                <li class="list-group-item">    
-                                     
-                                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                     
-                                </li>
-                                <li class="list-group-item">    
-                                     
-                                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                     
-                                </li>
-                                <li class="list-group-item">    
-                                     
-                                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                     
-                                </li>
-                                <li class="list-group-item">    
-                                     
-                                        <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                                     
-                                </li>
-                            
-
+                             
                        </ul>
+                       <div class = "row top-20"> 
+                                <div class="col-sm-6 input-group mb-3">
+                                        <input id="input_insurance_amount" type="number" class="form-control" placeholder="ether" aria-label="Recipient's username" aria-describedby="basic-addon2">
+                                </div>
+                                <div class = "col-sm-6 text-center"> 
+                                    <button id = "bt_buy_insurance" type="button" class="btn btn-success">Buy Insurance</button>
+                                </div>
+                        </div>
+                        
                 </div>
-                    <div class = "col-sm-2"> 
-                            <div class="input-group mb-3">
-                                    <input id="input_insurance_amount" type="number" class="form-control" placeholder="ether" aria-label="Recipient's username" aria-describedby="basic-addon2">
-                           </div>
-                    </div>
-                    <div class = "text-center"> 
-                            <button id = "bt_buy_insurance" type="button" class="btn btn-success">Buy Insurance</button>
-                    </div>
-                </div>
+                   
+        </div>
                 
-            </div>
+          
         <div class="row top-20">
             <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
+        </div>
+        <div class="row top-20">
+                <div class = "col-sm-6"> <label >Buy Insurance  </label> </div>
+                <div class = "col-sm-6">    
+                    <ul id="insured_flights"  class="list-group overflow-auto" style="height:300px; width: auto; padding: 10px;">
+                        
+                    </ul>
+                </div>
+            
         </div>
     </main>
 

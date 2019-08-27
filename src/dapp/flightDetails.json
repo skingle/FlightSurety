@@ -1,0 +1,28 @@
+[
+    {
+        "flightName":"AM1",
+        "airline":"",
+        "timestamp":"1566597496"
+    },
+    {
+        "flightName":"AC1",
+        "airline":"",
+        "timestamp":"1566597622"
+    },
+    {
+        "flightName":"AS1",
+        "airline":"",
+        "timestamp":"1566597645"
+    },
+    {
+        "flightName":"BG1",
+        "airline":"",
+        "timestamp":"1566597722"
+    },
+    {
+        "flightName":"CI1",
+        "airline":"",
+        "timestamp":"1566597996"
+    }
+    
+]
