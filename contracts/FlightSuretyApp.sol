@@ -256,7 +256,7 @@ contract FlightSuretyApp {
     {
         bytes32 flightKey = getFlightKey(airline,flight,timestamp);
         flightSuretyDataContract.setFlightStatusCode(flightKey,statusCode);
-        oracleResponses[flightKey].isOpen = false;
+        
         if(statusCode == STATUS_CODE_LATE_AIRLINE){
             //refund 1.5x
             for(uint256 i =0; i < flightSuretyDataContract.getNumberOfInsuredPassangres(flightKey) ; i++ ){
@@ -277,7 +277,8 @@ contract FlightSuretyApp {
         requireFlightIsRegistred(airline,flight,timestamp)
     {
         // Generate a unique key for storing the request
-        
+        bytes32 flightKey = getFlightKey(airline,flight,timestamp);
+        require(flightSuretyDataContract.getFlightStatusCode(flightKey)==STATUS_CODE_UNKNOWN,"Flight status is already updated. If flight was delayed due to airline the amount will be credited to your wallet");
         uint8 index = getRandomIndex(msg.sender);
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
         oracleResponses[key] = ResponseInfo({
@@ -399,7 +400,7 @@ contract FlightSuretyApp {
         if (oracleResponses[key].responses[statusCode].length >= MIN_RESPONSES) {
 
             emit FlightStatusInfo(airline, flight, timestamp, statusCode);
-
+            oracleResponses[key].isOpen = false;
             // Handle flight status as appropriate
             processFlightStatus(airline, flight, timestamp, statusCode);
         }
@@ -526,6 +527,7 @@ contract FlightSuretyData {
     function getInsuredPassangresAt(bytes32 flightKey, uint256 index) view external returns (address);
     function getPassengerInsuranceAmount(address passenger, bytes32 flightKey) view external returns(uint256);
     function getIsFlightRegistred(bytes32 key) view external returns(bool);
+    function getFlightStatusCode(bytes32 key) view external returns(uint8);
     
 
 }

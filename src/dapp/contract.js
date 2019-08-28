@@ -50,7 +50,7 @@ export default class Contract {
              .call({ from: self.owner}, callback);
      }
 
-    fetchFlightStatus(flight, callback) {
+    fetchFlightStatus(flight,currentAccount, callback) {
         let self = this;
         // let payload = {
         //     airline: self.airlines[0],
@@ -59,9 +59,7 @@ export default class Contract {
         // } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(flight["airline"], flight["name"], flight["flightRegistrationTimestamp"])
-            .send({ from: self.owner}, (error, result) => {
-                callback(error, flight);
-            });
+            .send({ from:currentAccount}, callback);
     }
 
     setAppContractOprationalStatus(status,callback){
@@ -216,7 +214,7 @@ export default class Contract {
         let self = this;
         self.flightSuretyData.methods
         .getWalletBalance()
-        .call({from : passenger , gas:10000},callback)
+        .call({from : passenger},callback)
     }
 
     pay(account,callback){

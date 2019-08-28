@@ -31,7 +31,7 @@ contract FlightSuretyData {
     uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
+    uint8 private constant STATUS_CODE_LATE_OTHER = 50;getFlightStatusCode
 
     struct Flight {
         string name;
@@ -48,6 +48,13 @@ contract FlightSuretyData {
     mapping(address => mapping(bytes32=>uint256)) private passengerInsuranceAmount;
     mapping(address => bytes32[]) private passengerInsuredFlights;
 
+    function getFlightStatusCode(bytes32 key)
+        view
+        external
+        returns(uint8)
+    {
+        return flights[key].statusCode;
+    }
     
     function getNumberOfRegistredFlights()
         view
