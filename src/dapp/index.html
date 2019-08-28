@@ -138,12 +138,35 @@
 <body>
        
        
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top ">
         <a class="navbar-brand" href="#">FlightSurety</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault"
-            aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <div class="row " style="margin-left: 100px">
+          <div class = "col">
+            <div class="dropdown text-center" >
+                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                Select Account <span class="caret"></span>
+                </button>
+                <div id = "accounts_list" class="dropdown-menu scrollable-menu">
+                </div>
+            </div>
+          </div>  
+          <div class = "col">
+            <div class="card text-center " >
+                <div class="card-body-lg" style="color:#000;min-width: 200px;min-height: 30px">
+                    <h6 id="selected_account"></h6> 
+                </div>
+            </div>
+           </div> 
+           <div class = "col " style="color: #FFFFFF">
+            <div class="row"> 
+               <div class="col-4"> <label >Wallet Balance</label></div>
+               <div class="col-4"><div class="list-group-item text-center " id="wallet_balance" style="color: #000">0</div></div>
+               <div class="col-4"><button type="button" id="bt_redeem" class="btn btn-info">Redeem</button></div>
+               
+            </div>
+           </div> 
+        </div>
+    
     </nav>
     
             <div id="toast_container" aria-live="polite" aria-atomic="true" style="position: fixed;margin-top: 20px; min-height: 200px;z-index:100000;">
@@ -166,27 +189,7 @@
     
     <main class="container" style="margin-top:100px;">
         
-        <div id="display-wrapper" class="row top-20">
-                <div class = "col-sm-3"></div>
-                <div class = "col-sm-3">  <div class="dropdown">
-                        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
-                          Select Account <span class="caret"></span>
-                        </button>
-                        <div id = "accounts_list" class="dropdown-menu scrollable-menu">
-                        </div>
-                </div></div>
-                <div class = "col-sm-5">
-                        <div class="card text-center">
-                                <div class="card-header" style="color:#000">
-                                        Current Account
-                                </div>
-                                <div class="card-body" style="color:#000">
-                                    <h6 id="selected_account"></h6> 
-                                </div>
-                        </div>
-                </div>
-                <div class = "col-sm-1"></div>
-        </div>
+        
         <div class="row top-20">
                 <div class = "col-sm-6"> <label >App Contract Contract Operational Status</label></div>
                 <div class = "col-sm-6"><label class="switch">
@@ -281,18 +284,20 @@
         </div>
                 
           
-        <div class="row top-20">
-            <label class="form">Flight</label> <input type="text" id="flight-number"> <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
-        </div>
+        
         <div class="row top-20">
                 <div class = "col-sm-6"> <label >Buy Insurance  </label> </div>
                 <div class = "col-sm-6">    
                     <ul id="insured_flights"  class="list-group overflow-auto" style="height:300px; width: auto; padding: 10px;">
                         
                     </ul>
+                    <br>
+                    <btn class="btn btn-primary" id="submit-oracle">Submit to Oracles</btn>
                 </div>
             
         </div>
+
+        
     </main>
 
 </body>

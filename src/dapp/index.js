@@ -37,10 +37,26 @@ var passengerInsuredflights=[];
             document.getElementById("accounts_list").innerHTML=document.getElementById("accounts_list").innerHTML + generateDropDownItem(contract.passengers[i]);
         }
 
+        $('#bt_redeem').on('click',()=>{
+
+            contract.pay(currentAccount,(error,result)=>{
+                console.log(result);
+                console.log(error);
+            })
+            contract.getWalletBalance(currentAccount,(error,result)=>{
+                $('#wallet_balance').innerHTML = result;
+            });
+        });
+
         $('#accounts_list a').on('click', function(){
             //console.log($(this).text());
             document.getElementById('selected_account').innerHTML=$(this).text();
             currentAccount = $(this).text();
+
+            contract.getWalletBalance(currentAccount,(error,result)=>{
+                    $('#wallet_balance').innerHTML = result;
+            });
+
             $('#insured_flights')[0].innerHTML="";
             contract.getInsuredFlights(currentAccount,(flight)=>{
                 console.log(flight);
@@ -56,6 +72,8 @@ var passengerInsuredflights=[];
                 });
                 
             });
+
+
             
         });
 
@@ -95,10 +113,17 @@ var passengerInsuredflights=[];
 
         // User-submitted transaction
         DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
+           // let flight = DOM.elid('flight-number').value;
             // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            contract.fetchFlightStatus(selectedFlightForOracalRes, (error, result) => {
+               // display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+                if(result!=undefined){
+                    console.table(result);
+                    showToast(`Airline : ${result["name"]} 
+                    Time : ${ Date(result["flightRegistrationTimestamp"]).toLocaleString()}`);
+                }else{
+                    showToast(JSON.stringify(error));
+                }
             });
         })
 

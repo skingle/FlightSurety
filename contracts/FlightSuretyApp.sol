@@ -110,6 +110,15 @@ contract FlightSuretyApp {
         _;
     }
 
+    modifier requireNotOracleRegistred(){
+        require(!oracles[msg.sender].isRegistered,"Oracle is already registred" );
+        _;
+    }
+    modifier requireOracleRegistred(){
+        require(oracles[msg.sender].isRegistered,"Oracle is not registred" );
+        _;
+    }
+
     // /**
     // * @dev Modifier that caps the price of insurance
     // */
@@ -333,10 +342,11 @@ contract FlightSuretyApp {
                             )
                             external
                             payable
+                            requireNotOracleRegistred()
     {
         // Require registration fee
         require(msg.value >= REGISTRATION_FEE, "Registration fee is required");
-
+        
         uint8[3] memory indexes = generateIndexes(msg.sender);
 
         oracles[msg.sender] = Oracle({
@@ -373,6 +383,7 @@ contract FlightSuretyApp {
                             uint8 statusCode
                         )
                         external
+                        requireOracleRegistred()
     {
         require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
@@ -492,7 +503,7 @@ contract FlightSuretyData {
     function deauthorizeAppContract(address contract_) external;
     function registerAirline(address airline) external;
     function buy() external payable;
-    function creditInsurees(address passengre, uint256 amount)external;
+    function creditInsurees(address passengre, uint256 amount) external;
     function pay(address passengre) external;
     function fund() public payable;
     function getFlightKey(address airline, string memory flight, uint256 timestamp)  pure internal returns(bytes32);

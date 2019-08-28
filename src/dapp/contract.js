@@ -52,15 +52,15 @@ export default class Contract {
 
     fetchFlightStatus(flight, callback) {
         let self = this;
-        let payload = {
-            airline: self.airlines[0],
-            flight: flight,
-            timestamp: Math.floor(Date.now() / 1000)
-        } 
+        // let payload = {
+        //     airline: self.airlines[0],
+        //     flight: flight,
+        //     timestamp: Math.floor(Date.now() / 1000)
+        // } 
         self.flightSuretyApp.methods
-            .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
+            .fetchFlightStatus(flight["airline"], flight["name"], flight["flightRegistrationTimestamp"])
             .send({ from: self.owner}, (error, result) => {
-                callback(error, payload);
+                callback(error, flight);
             });
     }
 
@@ -210,6 +210,20 @@ export default class Contract {
         self.flightSuretyApp.methods
         .buyInsurance(airline,flight,timestamp)
         .send({from:insurer,value:this.web3.utils.toWei(amount, "ether"),gas:1000000},callback)
+    }
+
+    getWalletBalance(passenger,callback){
+        let self = this;
+        self.flightSuretyData.methods
+        .getWalletBalance()
+        .call({from : passenger , gas:10000},callback)
+    }
+
+    pay(account,callback){
+        let self = this;
+        self.flightSuretyData.methods
+        .pay()
+        .send({from:account},callback)
     }
   
 }

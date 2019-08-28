@@ -221,17 +221,28 @@ contract FlightSuretyData {
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay(address passengre)
+    function pay()
         external
         requireIsOperational()
         //requireAuthorizedContract(msg.sender)
     {   
-        require(passengresAccountWallet[passengre] > 0,'Wallet is empty');
-        uint256 amount = passengresAccountWallet[passengre];
-        passengresAccountWallet[passengre] = 0;
-        passengre.transfer(amount);
+        require(passengresAccountWallet[msg.sender] > 0,'Wallet is empty');
+        uint256 amount = passengresAccountWallet[msg.sender];
+        passengresAccountWallet[msg.sender] = 0;
+        msg.sender.transfer(amount);
     }
 
+    /**
+     *  @dev Returns Wallet balance
+     *
+    */
+    function getWalletBalance()
+        external
+        view
+        returns (uint256)
+    {
+        return passengresAccountWallet[msg.sender];
+    }
    /**
     * @dev Initial funding for the insurance. Unless there are too many delayed flights
     *      resulting in insurance payouts, the contract should be self-sustaining

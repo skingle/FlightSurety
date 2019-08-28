@@ -13,7 +13,7 @@ module.exports = {
     develop: {
       port: 8545,
       network_id: 20,
-      accounts: 30,
+      accounts: 55,
       defaultEtherBalance: 500,
     }
 
