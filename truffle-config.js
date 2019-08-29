@@ -15,8 +15,7 @@ module.exports = {
       network_id: 20,
       accounts: 55,
       defaultEtherBalance: 500,
-    }
-
+    },
 
   },
   compilers: {

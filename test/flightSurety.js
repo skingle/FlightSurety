@@ -5,6 +5,7 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
+  var flight={};
 
   before('setup contract', async () => {
     config = await Test.Config(accounts);
@@ -127,7 +128,7 @@ contract('Flight Surety Tests', async (accounts) => {
       let newAirline  = accounts[5]; //6th adress
       
       let registrationStatusBefore = await config.flightSuretyData.isAirlineRegistred(newAirline);
-      console.log(`registrationStatusBefore (${newAirline}) :: ${registrationStatusBefore}`);
+      //console.log(`registrationStatusBefore (${newAirline}) :: ${registrationStatusBefore}`);
       await config.flightSuretyApp.fund({from:accounts[2],value:web3.utils.toWei("10", "ether")});
       await config.flightSuretyApp.fund({from:accounts[3],value:web3.utils.toWei("10", "ether")});
       await config.flightSuretyApp.fund({from:accounts[4],value:web3.utils.toWei("10", "ether")});
@@ -137,13 +138,24 @@ contract('Flight Surety Tests', async (accounts) => {
             await config.flightSuretyApp.registerAirline.sendTransaction(newAirline ,{from:accounts[i]});
       }
       let registrationStatusAfter = await config.flightSuretyData.isAirlineRegistred(accounts[5]);
-      console.log(`registrationStatusAfter (${newAirline}) :: ${registrationStatusAfter}`);
+     // console.log(`registrationStatusAfter (${newAirline}) :: ${registrationStatusAfter}`);
       assert.equal(registrationStatusAfter,true,"Airline registration with conscious failed ");
   });
 
-  it('(airline)Registred and funded airline can register flights',()=>{
-      let flightName = A708;
-      let timeStamp = ;
+  it('(airline) Registred and funded airlines can register flights',async ()=>{
+     try{ 
+            let flightName = "A708";
+            let timeStamp = Math.floor(Date.now()/1000)
+            let airline = config.firstAirline;
+            flight={name:flightName,date:timeStamp,airline:airline};
+            let numberOfRegistredFlightBefore = await config.flightSuretyData.getNumberOfRegistredFlights.call();
+            await config.flightSuretyApp.registerFlight.sendTransaction(flightName,timeStamp,{from:airline});
+            let numberOfRegistredFlightAfter = await config.flightSuretyData.getNumberOfRegistredFlights.call();
+            //console.log(numberOfRegistredFlightBefore,numberOfRegistredFlightAfter);
+            assert.isAbove(numberOfRegistredFlightAfter.toNumber(),numberOfRegistredFlightBefore.toNumber(),"Flight was not registred");
+        }catch(e){
+            console.log(e);
+        }
   })
 
 

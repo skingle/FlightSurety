@@ -15,7 +15,15 @@ var passengerInsuredflights=[];
     
 
     let contract = new Contract('localhost', () => {
-
+        
+        
+        //Refresh wallet balance for every 5sec
+        window.setInterval(function(){
+            contract.getWalletBalance(currentAccount,(error,result)=>{
+                console.log(`getWalletBalance :: ${result?result:error} `);
+                document.getElementById('wallet_balance').innerHTML = contract.web3.utils.fromWei(result,'ether') + " eth";
+        });
+          }, 5000);
 
         //Loads accounts in a selector
         loadAccountsToSelector(contract);
@@ -150,7 +158,7 @@ var passengerInsuredflights=[];
            
             contract.registerAirline(selectedAirlineForReg,currentAccount,(error, result) => {
                 console.log(error,result);
-                //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+                contract.getRegistredAirlines(loadRegistredAirlines);
             });
             
         })

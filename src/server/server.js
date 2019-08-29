@@ -7,6 +7,7 @@ import express from 'express';
 let config = Config['localhost'];
 let oracleAccounts=[];
 let oracleAndIndexes={};
+let responseCodes=[10,20,30,40,50];
 let web3 = new Web3(new Web3.providers.WebsocketProvider(config.url.replace('http', 'ws')));
 //web3.eth.defaultAccount = web3.eth.accounts[25];
 
@@ -53,26 +54,7 @@ web3.eth.getAccounts((error, accts) => {
   
   
 })
-
-function submitOracleResponse(event){
-  let oraclesToRespond = oracleAndIndexes[event.returnValues.index];
-  oraclesToRespond.forEach(oracle=>{
-
-    flightSuretyApp.methods
-    .submitOracleResponse(
-      event.returnValues.index,
-      event.returnValues.airline,
-      event.returnValues.flight,
-      event.returnValues.timestamp,
-      Math.random()>0.5?10:20)
-    .send({from:oracle},(error,result)=>{
-            if (error) console.log(error);
-            if (error) console.log(result);
-      });
-
-  });
-      
-}  
+ 
 
 flightSuretyApp.events.OracleRequest( function (error, event) {
       //if (error) console.log(error)
@@ -83,7 +65,7 @@ flightSuretyApp.events.OracleRequest( function (error, event) {
          let oraclesToRespond = oracleAndIndexes[event.returnValues.index];
          console.log(`oraclesToRespond :: ${oraclesToRespond}`);
            oraclesToRespond.forEach(oracle=>{
-             let oracleResponse =20; 
+             let oracleResponse = responseCodes[Math.floor(Math.random() * (+5 - +0)) + +0]; 
              flightSuretyApp.methods
              .submitOracleResponse(
                event.returnValues.index,
@@ -92,14 +74,14 @@ flightSuretyApp.events.OracleRequest( function (error, event) {
                event.returnValues.timestamp,
                oracleResponse)
              .send({from:oracle,gas:1000000},(error,result)=>{
-                     if (error) console.log(error);
+                     //if (error) console.log(error);
                      if (result) console.log(`${result} :  ${oracleResponse}`);
                });
 
            });
 
         } catch (error) {
-          console.log(error);
+          //console.log(error);
         }  
         
           
