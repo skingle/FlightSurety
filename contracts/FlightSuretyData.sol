@@ -48,29 +48,6 @@ contract FlightSuretyData {
     mapping(address => mapping(bytes32=>uint256)) private passengerInsuranceAmount;
     mapping(address => bytes32[]) private passengerInsuredFlights;
 
-    function getFlightStatusCode(bytes32 key)
-        view
-        external
-        returns(uint8)
-    {
-        return flights[key].statusCode;
-    }
-    
-    function getNumberOfRegistredFlights()
-        view
-        external
-        returns(uint256)
-    {
-        return registredFlightKeys.length;
-    }
-    function getRegistredFlights(uint256 i)
-        view
-        external
-        returns(bytes32)
-    {
-        return registredFlightKeys[i];
-    }
-    
 /********************************************************************************************/
 /*                                       EVENT DEFINITIONS                                  */
 /********************************************************************************************/
@@ -501,5 +478,30 @@ contract FlightSuretyData {
     {
         return flights[key].isRegistred;
     }
+
+    
+    function getFlightStatusCode(bytes32 key)
+        view
+        external
+        returns(uint8)
+    {
+        return flights[key].statusCode;
+    }
+    
+    function getNumberOfRegistredFlights()
+        view
+        external
+        returns(uint256)
+    {
+        return registredFlightKeys.length;
+    }
+    function getRegistredFlights(uint256 i)
+        view
+        external
+        returns(bytes32)
+    {
+        return registredFlightKeys[i];
+    }
+    
 }
 

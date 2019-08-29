@@ -22,8 +22,7 @@ var passengerInsuredflights=[];
             contract.getWalletBalance(currentAccount,(error,result)=>{
                 console.log(`getWalletBalance :: ${result?result:error} `);
                 document.getElementById('wallet_balance').innerHTML = contract.web3.utils.fromWei(result,'ether') + " eth";
-        });
-          }, 5000);
+        }); }, 5000);
 
         //Loads accounts in a selector
         loadAccountsToSelector(contract);
@@ -34,6 +33,7 @@ var passengerInsuredflights=[];
                if(result){
                     contract.getWalletBalance(currentAccount,(error,result)=>{
                         document.getElementById('wallet_balance').innerHTML = contract.web3.utils.fromWei(result,'ether');
+                        showToast(result,"result");
                     });
                }else{
                    showToast(error,"error");
@@ -107,6 +107,7 @@ var passengerInsuredflights=[];
                 console.log("error :: " +error);
                 console.log("result :: " +result);
         });
+        
 
         contract.getRegistredAirlines(loadRegistredAirlines);
 
@@ -135,7 +136,7 @@ var passengerInsuredflights=[];
         DOM.elid('data_contract_toggle').addEventListener('click', () => {
             let toggle = document.getElementById('app_contract_toggle');
             // Write transaction
-            contract.setAppContractOprationalStatus(toggle.checked,(error, result) => {
+            contract.setDataContractOprationalStatus(toggle.checked,(error, result) => {
                 console.log(error,result);
                 //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
             });
