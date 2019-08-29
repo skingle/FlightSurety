@@ -31,7 +31,7 @@ contract FlightSuretyData {
     uint8 private constant STATUS_CODE_LATE_AIRLINE = 20;
     uint8 private constant STATUS_CODE_LATE_WEATHER = 30;
     uint8 private constant STATUS_CODE_LATE_TECHNICAL = 40;
-    uint8 private constant STATUS_CODE_LATE_OTHER = 50;getFlightStatusCode
+    uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     struct Flight {
         string name;

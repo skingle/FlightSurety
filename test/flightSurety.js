@@ -5,25 +5,14 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
 
   var config;
-  const regTimestamp = Math.floor(Date.now() / 1000);
+
   before('setup contract', async () => {
     config = await Test.Config(accounts);
     console.log("firstAirline :: " +config.firstAirline );
-    config.flightSuretyData.receivedFundFromAirline()
-    .on('data', event =>console.log(event) );
-
-    // config.flightSuretyApp.recivedfund()
-    // .on('data', event =>console.log(event) );
+    //config.flightSuretyData.events.allEvents((event)=>console.log(event));
     
-    config.flightSuretyApp.FlightHasBeenRegistred()
-    .on('data', event =>console.log(event) );
-
-    // config.flightSuretyData.noOfRegistredAirlines()
-    // .on('data', event =>console.log(event) );
-    
-    //config.flightSuretyData.countAirlines()
-    //.on('data', event =>console.log(event) );
-
+    await config.flightSuretyData.setOperatingStatus(true, { from: config.owner });
+    await config.flightSuretyApp.setOperatingStatus(true, { from: config.owner});
     let log = await config.flightSuretyData.authorizeAppContract(config.flightSuretyApp.address, {from:config.owner});
    // console.log("LOG :: "+JSON.stringify(log) + " App address :: " + config.flightSuretyApp.address +" owner :: "+ config.owner);
   });
@@ -35,8 +24,10 @@ contract('Flight Surety Tests', async (accounts) => {
   it(`(multiparty) has correct initial isOperational() value`, async function () {
 
     // Get operating status
-    let status = await config.flightSuretyData.isOperational.call();
-    assert.equal(status, true, "Incorrect initial operating status value");
+    let statusData = await config.flightSuretyData.isOperational.call();
+    let statusApp = await config.flightSuretyApp.isOperational.call();
+    assert.equal(statusData, true, "Incorrect initial operating status value for data contract");
+    assert.equal(statusApp, true, "Incorrect initial operating status value for app contract");
 
   });
 
@@ -61,7 +52,7 @@ contract('Flight Surety Tests', async (accounts) => {
       let accessDenied = false;
       try 
       {
-          await config.flightSuretyData.setOperatingStatus(false);
+          await config.flightSuretyData.setOperatingStatus(false,{ from: config.owner });
       }
       catch(e) {
           accessDenied = true;
@@ -131,7 +122,29 @@ contract('Flight Surety Tests', async (accounts) => {
     console.log("Registred Airlines : " + numberOfAirlinesReg_after );
     assert.equal(numberOfAirlinesReg_before < numberOfAirlinesReg_after, true, "Airline should be able to register another airline if fund is provided ");  
   });
- 
+  
+  it('(airline) fifth airline will be registred with the conscious of  half of the registred airlines',async()=>{
+      let newAirline  = accounts[5]; //6th adress
+      
+      let registrationStatusBefore = await config.flightSuretyData.isAirlineRegistred(newAirline);
+      console.log(`registrationStatusBefore (${newAirline}) :: ${registrationStatusBefore}`);
+      await config.flightSuretyApp.fund({from:accounts[2],value:web3.utils.toWei("10", "ether")});
+      await config.flightSuretyApp.fund({from:accounts[3],value:web3.utils.toWei("10", "ether")});
+      await config.flightSuretyApp.fund({from:accounts[4],value:web3.utils.toWei("10", "ether")});
+      //Now registration will be done by all funded accounts 
+      //which will increase the vote to 3/4 (account[1,2,3] : voted)
+      for(let i = 1 ; i < 3 ; i++) {
+            await config.flightSuretyApp.registerAirline.sendTransaction(newAirline ,{from:accounts[i]});
+      }
+      let registrationStatusAfter = await config.flightSuretyData.isAirlineRegistred(accounts[5]);
+      console.log(`registrationStatusAfter (${newAirline}) :: ${registrationStatusAfter}`);
+      assert.equal(registrationStatusAfter,true,"Airline registration with conscious failed ");
+  });
+
+  it('(airline)Registred and funded airline can register flights',()=>{
+      let flightName = A708;
+      let timeStamp = ;
+  })
 
 
 });
