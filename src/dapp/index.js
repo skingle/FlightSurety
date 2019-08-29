@@ -26,6 +26,14 @@ var passengerInsuredflights=[];
 
         //Loads accounts in a selector
         loadAccountsToSelector(contract);
+
+
+        contract.setAppContractOprationalStatus(true,(error, result) => {
+            console.log(error,result);
+            //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
+        });
+
+        
         //Redeems the credits
         $('#bt_redeem').on('click',()=>{
 
