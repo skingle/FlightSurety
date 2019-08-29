@@ -148,6 +148,7 @@ var passengerInsuredflights=[];
             // Write transaction
             contract.fund(currentAccount,input.value,(error, result) => {
                 console.log(error,result);
+                result?showToast(result,"result"):showToast(error,"error");
                 //display('Operational Status App', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
             });
             
@@ -160,6 +161,7 @@ var passengerInsuredflights=[];
             contract.registerAirline(selectedAirlineForReg,currentAccount,(error, result) => {
                 console.log(error,result);
                 contract.getRegistredAirlines(loadRegistredAirlines);
+                result?showToast(result,"result"):showToast(error,"error");
             });
             
         })
