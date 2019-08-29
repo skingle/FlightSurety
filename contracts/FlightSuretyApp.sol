@@ -401,7 +401,7 @@ contract FlightSuretyApp {
     }
 
     
-    function getFlightKey( address airline,string flight,uint256 )
+    function getFlightKey( address airline,string flight,uint256 timestamp)
         pure
         internal
         returns(bytes32) 
