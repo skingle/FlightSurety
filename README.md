@@ -1,7 +1,7 @@
 # FlightSurety
 
-FlightSurety is a blockchain application to buy insurance for flights. This application uses two contracts, Data contract and App contract.
-Frontend uses web3 to interact with those contracts. The usecase for this application is that a per registred airline can register another airline, if the number of airline registred are 4 then 5th airline has to get consious of other 50% registred airline to get register. Airlines has to fund the contract with 10 ether to perform operation on registration of flights and ailines. Airlines can register a flight. The registred flight can be used to buy insurance of 1 ether maxmimum by the passengres. Passengres can request for flight status from oracle. If the requested status of flight is delayed due to airline then the passengres who bought this insurance will get the 1.5 times the amount of bought insurance. Passengers can redeem that amount from the wallet.
+FlightSurety is a blockchain application to buy insurance for flights. This application uses two contracts, Data contract, and App contract.
+The frontend uses web3 to interact with those contracts. The use-case for this application is that a per registered airline can register another airline, if the number of airlines registered is 4 then the 5th airline has to get conscious of the other 50% registered airline to get register. Airlines have to fund the contract with 10 ether to operate on registration of flights and airlines. Airlines can register a flight. The registered flight can be used to buy insurance of 1 ether maximum by the passengers. Passengers can request for flight status from oracle. If the requested status of flight is delayed due to the airline then the passengers who bought this insurance will get the 1.5 times the amount of bought insurance. Passengers can redeem that amount from the wallet.
 
 ## Install
 
